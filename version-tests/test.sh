@@ -7,9 +7,9 @@ VLV=../voom-like-version.sh
 echo "Running tests:"
 
 if [  $(git rev-parse --show-cdup) != "../" ]; then
-    echo -e >&2 "These tests rely on git history of the upstream repo \n" \
-    "and will not work if modified or pulled into another repo (such as \n" \
-    "with git subrepo"
+    echo -e >&2 "These tests rely on git history of the upstream repo \n"\
+    "and will not work if modified or pulled into another repo (such as \n"\
+    "with git subrepo)"
     exit 1
 fi
 
