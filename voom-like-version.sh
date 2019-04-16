@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Lives at: https://github.com/LonoCloud/voom-util/blob/master/voom-like-version.sh
 
 set -e
 
