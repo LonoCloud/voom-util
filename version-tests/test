@@ -1,0 +1,55 @@
+#!/usr/bin/env bb
+
+(require '[clojure.test :as test :refer [deftest is run-tests testing]])
+
+(defn file-path [path]
+  (-> *file*
+      io/file
+      (.getParent)
+      (io/file path)
+      str))
+
+(def voom-like-version-bin-path (file-path "../voom-like-version"))
+
+(defn voom-like-version
+  ([]
+   (voom-like-version []))
+  ([args]
+   (let [targets (map file-path args)
+         {:keys [out exit] :as res}
+         (apply shell/sh (into [voom-like-version-bin-path] targets))]
+     (if (zero? exit)
+       (str/trim out)
+       res))))
+
+(let [early           "test-files/earlier"
+      later           "test-files/later"
+      early-link      "test-files/earlier-link"
+      later-link      "test-files/later-link"
+      early-ver       (voom-like-version [early])
+      later-ver       (voom-like-version [later])]
+  (deftest vlv
+    (testing "later version should not equal later version"
+      (is (not= early-ver later-ver)))
+    (testing "if don't have later, should be early"
+      (let [expected early-ver]
+        (is (= expected (voom-like-version [early])))
+        (is (= expected (voom-like-version [early-link])))
+        (is (= expected (voom-like-version [early early-link])))
+        (is (= expected (voom-like-version [early-link early])))))
+    (testing "if have later, should be later"
+      (let [expected later-ver]
+        (is (= expected (voom-like-version [later])))
+        (is (= expected (voom-like-version [later-link])))
+        (is (= expected (voom-like-version [later later-link])))
+        (is (= expected (voom-like-version [later-link later])))
+        (is (= expected (voom-like-version [early later])))
+        (is (= expected (voom-like-version [later early])))
+        (is (= expected (voom-like-version [early-link later-link early later])))))
+    (testing "later should be the value of the entire repo"
+      (is (= later-ver (voom-like-version ["."]))))))
+
+(deftest failure-with-no-arguments
+  (is (= 1 (:exit (voom-like-version)))))
+
+(run-tests *ns*)
