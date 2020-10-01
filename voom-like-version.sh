@@ -6,7 +6,7 @@ set -e
 [ -n "$DEBUG" ] && set -x
 
 voom_version() {
-    echo $(date --date="$(git log -1 --pretty=%ci -- "$@")" "+%Y%m%d_%H%M%S")-g$(git log -1 --pretty=%h -- "$@")$(test -z "$(git status --short -- "$@")" || echo _DIRTY)
+    echo $(date -u --date="$(git log -1 --pretty=%ci -- "$@")" "+%Y%m%d_%H%M%S")-g$(git log -1 --pretty=%h -- "$@")$(test -z "$(git status --short -- "$@")" || echo _DIRTY)
 }
 
 usage() {
