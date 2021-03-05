@@ -5,7 +5,9 @@
    [clojure.java.shell :as shell]
    [clojure.string :as str])
   (:import
-   (java.time OffsetDateTime ZoneOffset)
+   (java.time Instant
+              OffsetDateTime
+              ZoneOffset)
    (java.time.format DateTimeFormatter)))
 
 (def usage (format "usage: %s <PATH> [PATH...] # Optionally, set REPO_ROOT_VOOM instead of supplying <PATH>."
@@ -20,20 +22,22 @@
 (def voom-formatter (DateTimeFormatter/ofPattern "yyyyMMdd_HHmmss"))
 
 (defn voom-version [paths]
-  (let [targets      (map #(-> % io/file (.getCanonicalPath)) paths)
-        date-args    (into ["git" "log" "-1" "--pretty=%cI" "--"] targets)
+  (let [targets (map #(-> % io/file (.getCanonicalPath)) paths)
+        date-args (into ["git" "log" "-1" "--pretty=%cI" "--"] targets)
         git-date-str (apply-shell! date-args)
-        date-str     (-> git-date-str
-                         str/trim
-                         (OffsetDateTime/parse)
-                         (.withOffsetSameInstant ZoneOffset/UTC)
-                         (.format voom-formatter))
+        offset-date (if (str/blank? git-date-str)
+                      (OffsetDateTime/ofInstant (Instant/now) ZoneOffset/UTC)
+                      (-> git-date-str
+                          str/trim
+                          (OffsetDateTime/parse)
+                          (.withOffsetSameInstant ZoneOffset/UTC)))
+        date-str (.format offset-date voom-formatter)
 
         sha-args (into ["git" "log" "-1" "--pretty=%h" "--"] targets)
-        sha      (apply-shell! sha-args)
+        sha (apply-shell! sha-args)
 
         status-args (into ["git" "status" "--short" "--"] targets)
-        status      (apply-shell! status-args)]
+        status (apply-shell! status-args)]
     (format "%s-g%s" date-str (if (str/blank? status) sha "_DIRTY"))))
 
 
