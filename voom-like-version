@@ -38,7 +38,7 @@
 
         status-args (into ["git" "status" "--short" "--"] targets)
         status (apply-shell! status-args)]
-    (format "%s-g%s" date-str (if (str/blank? status) sha "_DIRTY"))))
+    (format "%s-g%s" date-str (str sha (when-not (str/blank? status) "_DIRTY")))))
 
 
 (defn -main [& args]
